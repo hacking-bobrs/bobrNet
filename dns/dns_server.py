@@ -4,4 +4,5 @@ sock.bind(("", 50_000))
 while True:
     msg = dq.receive_udp(sock)
     print(msg)
-    dq.send_udp(sock, msg, ("8.8.8.8", 53))
+    resp = dq.udp(msg[0], "8.8.8.8")
+    dq.send_udp(sock, resp, msg[2])
