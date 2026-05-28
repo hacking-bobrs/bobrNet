@@ -1,0 +1,5 @@
+Flask
+blinker
+click
+jinja2
+psycopg2-binary

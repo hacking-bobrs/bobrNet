@@ -1,1 +1,4 @@
 .idea
+.env
+server_venv
+pgdata

@@ -1,0 +1,48 @@
+services:
+  server:
+    image: python:3.12-slim
+    container_name: server
+    working_dir: /server
+    volumes:
+      - ./server:/server
+      - ./server_venv:/server_venv
+    command: >
+      sh -c "
+            python -m venv /server_venv &&
+            /server_venv/bin/pip install -r requirements.txt &&
+            /server_venv/bin/python /server/main.py
+            "
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_DEVELOPER_USER}
+      - DB_PASSWORD=${DB_DEVELOPER_PASSWORD}
+
+  db:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_DEVELOPER_USER}
+      - POSTGRES_PASSWORD=${DB_DEVELOPER_PASSWORD}
+    ports:
+      - "5454:5454"
+    volumes:
+      - ./db:/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_DEVELOPER_USER} -d ${DB_NAME}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  server_venv:
+  pgdata:
