@@ -1,6 +1,6 @@
 import socket, dns.query as dq
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind(("", 50_000))
+sock.bind(("", 53))
 while True:
     msg = dq.receive_udp(sock)
     print(msg)
