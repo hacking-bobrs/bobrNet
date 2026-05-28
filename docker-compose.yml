@@ -9,11 +9,37 @@ services:
     command: >
       sh -c "
             python -m venv /server_venv &&
-            /server_venv/bin/pip install -r requirements.txt &&
-            /server_venv/bin/python /server/main.py
+            /server_venv/bin/pip install -r requirements.txt -q &&
+            /server_venv/bin/python /server/main.py &&
+            /server_venv/bin/pip install --upgrade pip
             "
     ports:
       - "5000:5000"
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_DEVELOPER_USER}
+      - DB_PASSWORD=${DB_DEVELOPER_PASSWORD}
+
+  dns:
+    image: python:3.12-slim
+    container_name: dns
+    working_dir: /dns
+    volumes:
+      - ./dns:/dns
+      - ./dns_venv:/dns_venv
+    command: >
+      sh -c "
+            python -m venv /dns_venv &&
+            /dns_venv/bin/pip install -r requirements.txt -q &&
+            /dns_venv/bin/python /dns/main.py &&
+            /dns_venv/bin/pip install --upgrade pip
+            "
+    ports:
+      - "6000:6000"
     restart: unless-stopped
     env_file:
       - .env
@@ -45,4 +71,5 @@ services:
 
 volumes:
   server_venv:
+  dns_venv:
   pgdata:
