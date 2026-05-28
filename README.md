@@ -1,0 +1,1 @@
+This is a project for Hackaburg 2026 https://hackaburg.de/2026
