@@ -12,7 +12,7 @@ def print_all_entries():
         cursor = conn.cursor()
         
         # Select the most important columns to display in the terminal
-        cursor.execute("SELECT id, domain, timestamp, city, country, isp FROM geo_traffic")
+        cursor.execute("SELECT * FROM logged_traffic")
         rows = cursor.fetchall()
         
         if not rows:

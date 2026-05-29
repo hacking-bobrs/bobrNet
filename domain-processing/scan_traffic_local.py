@@ -53,7 +53,7 @@ def send_string_to_receiver(message: str, host: str = '127.0.0.1', port: int = 6
             if message is not None:
                 client_socket.sendall(message.encode('utf-8'))
 
-                print(f"Successfully sent: '{message}' to {host}:{port}")
+                #print(f"Successfully sent: '{message}' to {host}:{port}")
 
     except ConnectionRefusedError:
         print(f"Error: Could not connect to {host}:{port}. Is the receiver program running?")
