@@ -44,13 +44,15 @@ def init_db():
     conn.commit()
     conn.close()
 
-def save_to_db(domain, geo_info, log_only=False):
+def save_to_db(domain, geo_info):
 
 
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
 
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    log_only = is_domain_cached(domain)
 
     if not log_only:
         sql_domain = '''
@@ -151,3 +153,43 @@ def get_chronological_traffic_log():
         conn.close()
 
     return traffic_data
+
+def is_domain_cached(domain):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT 1 FROM domain_cache WHERE domain = ? LIMIT 1", (domain,))
+    exists = cursor.fetchone() is not None
+    conn.close()
+    return exists
+
+def print_cached_domains():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM domain_cache")
+    domains = cursor.fetchall()
+
+    print("Cached Domains:")
+    for d in domains:
+        print(f" - {d[1]}")
+
+    conn.close()
+
+def print_traffic_log():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM traffic_log")
+    domains = cursor.fetchall()
+
+    print("Traffic Log:")
+    for d in domains:
+        print(f" - {d[2]}")
+
+    conn.close()
+
+
+#print_cached_domains()
+#print_traffic_log()
+
+#print(f"Is 'example.com' cached? {is_domain_cached('rb.de')}")
