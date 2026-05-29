@@ -3,10 +3,10 @@ import threading
 import dns.message
 import dns.query as dq
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request as flask_request
 from flask_socketio import SocketIO
 
-from database import init_db, log_request
+from database import init_db, log_request, get_recent_traffic
 from enricher import resolve_true_sovereignty
 
 app = Flask(__name__)
@@ -19,6 +19,13 @@ LISTEN_PORT = 53
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@socketio.on("connect")
+def handle_connect():
+    history = get_recent_traffic(1000)
+    for event in history:
+        socketio.emit("dns_event", event, to=flask_request.sid)
 
 
 def dns_loop():

@@ -175,6 +175,9 @@
 
         let domainFilter = "";
         let markers = [];
+        let domainCounts = {}; // domain -> count
+        let locationMap = {}; // domain -> { marker, count }
+        let coordCounts = {}; // "lat,lon" -> count of markers placed there
 
         function countryFlag(cc) {
             if (!cc || cc === 'UN' || cc.length !== 2) return '🏳️';
@@ -289,7 +292,6 @@
             });
             
             logDiv.prepend(el);
-            if (logDiv.children.length > 50) logDiv.lastChild.remove();
         }
 
         function highlightMarker(index) {
@@ -305,9 +307,43 @@
         function plotOnMap(data) {
             if (!data.lat || !data.lon) return;
 
+            domainCounts[data.domain] = (domainCounts[data.domain] || 0) + 1;
+            const count = domainCounts[data.domain];
+
+            const key = data.domain;
+
+            if (locationMap[key]) {
+                const entry = locationMap[key];
+                entry.count = count;
+                const r = 8 + Math.sqrt(count - 1) * 6;
+                entry.marker.setRadius(Math.min(r, 40));
+                entry.marker.setPopupContent(`
+                    <div class="mono text-[11px] p-1">
+                        <b class="text-orange-600">${data.domain}</b><br>
+                        IP: ${data.ip}<br>
+                        ASN: ${data.asn_owner}<br>
+                        ${countryFlag(data.country_code)} ${data.country}${data.city ? ', ' + data.city : ''}<br>
+                        <b>${count} request${count !== 1 ? 's' : ''}</b>
+                    </div>
+                `);
+                return locationMap[key].markerIndex;
+            }
+
             const color = "#ffa973";
-            
-            const marker = L.circleMarker([data.lat, data.lon], {
+
+            // Offset markers at the same coordinates so they don't stack
+            const coordKey = data.lat.toFixed(2) + ',' + data.lon.toFixed(2);
+            coordCounts[coordKey] = (coordCounts[coordKey] || 0) + 1;
+            let placeLat = data.lat, placeLon = data.lon;
+            if (coordCounts[coordKey] > 1) {
+                const n = coordCounts[coordKey] - 1;
+                const angle = (n * 137.5) * (Math.PI / 180); // golden angle spread
+                const dist = 0.005 + n * 0.0004; // increasing distance in degrees
+                placeLat += Math.cos(angle) * dist;
+                placeLon += Math.sin(angle) * dist;
+            }
+
+            const marker = L.circleMarker([placeLat, placeLon], {
                 radius: 8,
                 fillColor: color,
                 color: "#666",
@@ -316,20 +352,24 @@
                 fillOpacity: 0.8
             }).addTo(map);
 
+            marker._domainKey = key;
+
             marker.bindPopup(`
                 <div class="mono text-[11px] p-1">
                     <b class="text-orange-600">${data.domain}</b><br>
                     IP: ${data.ip}<br>
                     ASN: ${data.asn_owner}<br>
-                    ${countryFlag(data.country_code)} ${data.country}${data.city ? ', ' + data.city : ''}
+                    ${countryFlag(data.country_code)} ${data.country}${data.city ? ', ' + data.city : ''}<br>
+                    <b>${count} request${count !== 1 ? 's' : ''}</b>
                 </div>
             `);
 
             const markerIndex = markers.length;
             markers.push(marker);
+            locationMap[key] = { marker, count: 1, markerIndex };
 
             // Pulse effect
-            const pulse = L.circleMarker([data.lat, data.lon], {
+            const pulse = L.circleMarker([placeLat, placeLon], {
                 radius: 4,
                 fillColor: color,
                 color: color,
@@ -360,8 +400,8 @@
             stats.providers[pg] = (stats.providers[pg] || 0) + 1;
 
             updateStats();
-            plotOnMap(data);
-            addLogEntry(data, markers.length - 1);
+            const mIdx = plotOnMap(data);
+            addLogEntry(data, mIdx !== undefined ? mIdx : markers.length - 1);
         });
 
         socket.on("connect", () => console.log("SENTINEL ONLINE"));
