@@ -12,8 +12,8 @@
     
     <style>
         body {
-            background-color: #050505;
-            color: #e2e8f0;
+            background-color: #f5f5f5;
+            color: #1e293b;
             font-family: 'Space Grotesk', sans-serif;
             overflow: hidden;
         }
@@ -22,13 +22,13 @@
         #map {
             height: 100%;
             width: 100%;
-            background: #050505;
+            background: #f5f5f5;
         }
         
         .glass {
-            background: rgba(15, 15, 25, 0.7);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.1);
         }
 
         .neon-border {
@@ -37,22 +37,22 @@
         }
 
         ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #050505; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #444; }
+        ::-webkit-scrollbar-track { background: #f5f5f5; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #aaa; }
 
-        .leaflet-container { background: #050505 !important; }
+        .leaflet-container { background: #f5f5f5 !important; }
 
         .country-bar {
             height: 4px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.1);
             border-radius: 2px;
             overflow: hidden;
             margin-top: 4px;
         }
         .country-progress {
             height: 100%;
-            background: #22d3ee;
+            background: #ffa973;
             transition: width 0.5s ease-out;
         }
 
@@ -65,7 +65,7 @@
 <body class="h-screen w-screen flex flex-col">
 
     <!-- Header -->
-    <header class="h-16 flex items-center justify-between px-6 border-b border-white/10 glass z-50">
+    <header class="h-16 flex items-center justify-between px-6 border-b border-black/10 glass z-50">
         <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-lg flex items-center justify-center">
                 <img src="{{ url_for('static', filename='bobrNet.png') }}" />
@@ -79,33 +79,33 @@
     <main class="flex-1 flex overflow-hidden relative">
         
         <!-- Left Panel: Navigation, Filter, Stats -->
-        <aside id="info-panel" class="w-72 border-r border-white/10 glass flex flex-col z-40 sidebar-transition">
+        <aside id="info-panel" class="w-72 border-r border-black/10 glass flex flex-col z-40 sidebar-transition">
             <!-- Network Stats -->
-            <div class="p-4 border-b border-white/10">
-                <h3 class="text-[10px] uppercase font-bold text-white/40 mb-2 tracking-widest">Network Stats</h3>
+            <div class="p-4 border-b border-black/10">
+                <h3 class="text-[10px] uppercase font-bold text-black/40 mb-2 tracking-widest">Network Stats</h3>
                 <div class="grid grid-cols-2 gap-4">
-                    <div class="p-4 bg-white/5 rounded-lg border border-white/10">
-                        <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Total Requests</p>
-                        <p id="stat-total" class="text-2xl font-bold mono text-cyan-400">0</p>
+                    <div class="p-4 bg-black/5 rounded-lg border border-black/10">
+                        <p class="text-[10px] text-black/40 uppercase font-bold mb-1">Total Requests</p>
+                        <p id="stat-total" class="text-2xl font-bold mono text-orange-600">0</p>
                     </div>
-                    <div class="p-4 bg-white/5 rounded-lg border border-white/10">
-                        <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Coutries Hit</p>
-                        <p id="stat-countries" class="text-2xl font-bold mono text-emerald-400">0</p>
+                    <div class="p-4 bg-black/5 rounded-lg border border-black/10">
+                        <p class="text-[10px] text-black/40 uppercase font-bold mb-1">Countries Hit</p>
+                        <p id="stat-countries" class="text-2xl font-bold mono text-orange-500">0</p>
                     </div>
                 </div>
             </div>
 
             <!-- Country Dependencies -->
-            <div class="p-4 border-b border-white/10">
-                <h3 class="text-[10px] uppercase font-bold text-white/40 mb-4 tracking-widest">Country Dependencies</h3>
+            <div class="p-4 border-b border-black/10">
+                <h3 class="text-[10px] uppercase font-bold text-black/40 mb-4 tracking-widest">Country Dependencies</h3>
                 <div id="country-ranking-right" class="space-y-4">
-                    <div class="text-white/20 text-[10px] italic text-center py-4">No data collected</div>
+                    <div class="text-black/20 text-[10px] italic text-center py-4">No data collected</div>
                 </div>
             </div>
 
             <!-- Provider Distribution -->
-            <div class="p-4 border-b border-white/10">
-                <h3 class="text-[10px] uppercase font-bold text-white/40 mb-6 tracking-widest">Provider Distribution</h3>
+            <div class="p-4 border-b border-black/10">
+                <h3 class="text-[10px] uppercase font-bold text-black/40 mb-6 tracking-widest">Provider Distribution</h3>
                 <div class="flex items-end gap-2 h-[200px] overflow-hidden pt-4" id="provider-bars">
                     <!-- Bars dynamically added here -->
                 </div>
@@ -113,25 +113,25 @@
         </aside>
 
         <!-- Center: Map -->
-        <section class="flex-1 relative bg-[#050505]">
+        <section class="flex-1 relative bg-[#f5f5f5]">
             <div id="map"></div>
         </section>
 
         <!-- Right Panel -->
-        <aside id="right-panel" class="w-80 border-l border-white/10 glass flex flex-col z-40 sidebar-transition overflow-y-auto custom-scrollbar">
+        <aside id="right-panel" class="w-80 border-l border-black/10 glass flex flex-col z-40 sidebar-transition overflow-y-auto custom-scrollbar">
             <!-- Live Intercepts -->
             <div class="flex items-center gap-2 mx-4 mt-4">
-                <h2 class="text-white/60">Intercepted Network Traffic</h2>
+                <h2 class="text-black/60">Intercepted Network Traffic</h2>
                 <span class="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
             </div>
 
             <div class="relative mt-2 mx-4">
-                <input type="text" id="filter-input" placeholder="Search domain..." class="w-full bg-white/5 border border-white/10 rounded-lg py-2 pl-9 pr-3 text-[11px] focus:outline-none focus:border-cyan-500/50 transition-colors">
-                <svg class="w-3.5 h-3.5 absolute left-3 top-2.5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <input type="text" id="filter-input" placeholder="Search domain..." class="w-full bg-black/5 border border-black/10 rounded-lg py-2 pl-9 pr-3 text-[11px] focus:outline-none focus:border-orange-600/50 transition-colors">
+                <svg class="w-3.5 h-3.5 absolute left-3 top-2.5 text-black/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </div>
 
             <div id="log" class="flex-1 overflow-y-auto p-4 space-y-3 mono text-[11px]">
-                <div class="text-white/30 italic text-center py-10">Awaiting DNS traffic...</div>
+                <div class="text-black/30 italic text-center py-10">Awaiting DNS traffic...</div>
             </div>
         </aside>
 
@@ -149,7 +149,7 @@
             attributionControl: false
         }).setView([20, 0], 2);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             maxZoom: 19
         }).addTo(map);
 
@@ -192,8 +192,8 @@
                 item.className = "space-y-1";
                 item.innerHTML = `
                     <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider">
-                        <span class="text-white/70">${country}</span>
-                        <span class="text-cyan-400">${percentage}%</span>
+                        <span class="text-black/70">${country}</span>
+                        <span class="text-orange-600">${percentage}%</span>
                     </div>
                     <div class="country-bar">
                         <div class="country-progress" style="width: ${percentage}%"></div>
@@ -215,11 +215,11 @@
                 const bar = document.createElement("div");
                 bar.className = "flex-1 flex flex-col items-center gap-1 h-full justify-end";
                 bar.innerHTML = `
-                    <div class="w-full bg-cyan-500/20 rounded-t relative group" style="height: ${height}%">
-                        <div class="absolute inset-0 bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity rounded-t"></div>
-                        <div class="absolute -top-4 left-0 right-0 text-[8px] text-center mono text-cyan-400">${count}</div>
+                    <div class="w-full bg-orange-500/30 rounded-t relative group" style="height: ${height}%">
+                        <div class="absolute inset-0 bg-orange-400 opacity-0 group-hover:opacity-100 transition-opacity rounded-t"></div>
+                        <div class="absolute -top-4 left-0 right-0 text-[8px] text-center mono text-orange-600">${count}</div>
                     </div>
-                    <div class="text-[8px] uppercase truncate w-full text-center text-white/40 mt-1">${name.split(' ')[0]}</div>
+                    <div class="text-[8px] uppercase truncate w-full text-center text-black/40 mt-1">${name.split(' ')[0]}</div>
                 `;
                 container.appendChild(bar);
             });
@@ -239,7 +239,7 @@
             if (stats.total === 1) logDiv.innerHTML = ""; // Clear placeholder
             
             const el = document.createElement("div");
-            el.className = "log-entry p-2 bg-white/5 rounded-r hover:bg-white/10 transition-colors";
+            el.className = "log-entry p-2 bg-black/5 rounded-r hover:bg-black/10 transition-colors";
             el.setAttribute("data-domain", data.domain.toLowerCase());
             
             if (domainFilter && !data.domain.toLowerCase().includes(domainFilter)) {
@@ -248,10 +248,10 @@
 
             el.innerHTML = `
                 <div class="flex justify-between items-start mb-1">
-                    <span class="text-cyan-400 font-bold truncate pr-2">${data.domain}</span>
-                    <span class="text-[9px] text-white/30">${new Date().toLocaleTimeString()}</span>
+                    <span class="text-orange-600 font-bold truncate pr-2">${data.domain}</span>
+                    <span class="text-[9px] text-black/30">${new Date().toLocaleTimeString()}</span>
                 </div>
-                <div class="flex justify-between text-[9px] text-white/50 uppercase font-bold">
+                <div class="flex justify-between text-[9px] text-black/50 uppercase font-bold">
                     <span>${data.country_code} // ${data.provider_group}</span>
                 </div>
             `;
@@ -263,12 +263,12 @@
         function plotOnMap(data) {
             if (!data.lat || !data.lon) return;
 
-            const color = "#22d3ee"; // Cyan
+            const color = "#ffa973";
             
             const marker = L.circleMarker([data.lat, data.lon], {
-                radius: 4,
+                radius: 8,
                 fillColor: color,
-                color: "#fff",
+                color: "#666",
                 weight: 1,
                 opacity: 0.8,
                 fillOpacity: 0.8
@@ -276,7 +276,7 @@
 
             marker.bindPopup(`
                 <div class="mono text-[11px] p-1">
-                    <b class="text-cyan-600">${data.domain}</b><br>
+                    <b class="text-orange-600">${data.domain}</b><br>
                     IP: ${data.ip}<br>
                     ASN: ${data.asn_owner}<br>
                     LOC: ${data.country}
