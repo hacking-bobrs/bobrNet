@@ -165,6 +165,7 @@
         };
 
         let domainFilter = "";
+        let markers = [];
 
         // --- UI Update Helpers ---
         function updateStats() {
@@ -235,16 +236,18 @@
             });
         });
 
-        function addLogEntry(data) {
+        function addLogEntry(data, markerIndex) {
             if (stats.total === 1) logDiv.innerHTML = ""; // Clear placeholder
             
             const el = document.createElement("div");
-            el.className = "log-entry p-2 bg-black/5 rounded-r hover:bg-black/10 transition-colors";
+            el.className = "log-entry p-2 bg-black/5 rounded-r hover:bg-black/10 transition-colors cursor-pointer";
             el.setAttribute("data-domain", data.domain.toLowerCase());
             
             if (domainFilter && !data.domain.toLowerCase().includes(domainFilter)) {
                 el.style.display = "none";
             }
+
+            el.setAttribute("data-marker-index", markerIndex);
 
             el.innerHTML = `
                 <div class="flex justify-between items-start mb-1">
@@ -255,9 +258,23 @@
                     <span>${data.country_code} // ${data.provider_group}</span>
                 </div>
             `;
+
+            el.addEventListener("click", () => {
+                highlightMarker(parseInt(el.getAttribute("data-marker-index")));
+            });
             
             logDiv.prepend(el);
             if (logDiv.children.length > 50) logDiv.lastChild.remove();
+        }
+
+        function highlightMarker(index) {
+            const marker = markers[index];
+            if (!marker) return;
+            const latlng = marker.getLatLng();
+            map.setView(latlng, 6, { animate: true });
+            marker.openPopup();
+            marker.setStyle({ fillColor: '#f97316', color: '#f97316', weight: 3 });
+            setTimeout(() => marker.setStyle({ fillColor: '#ffa973', color: '#666', weight: 1 }), 2000);
         }
 
         function plotOnMap(data) {
@@ -282,6 +299,9 @@
                     LOC: ${data.country}
                 </div>
             `);
+
+            const markerIndex = markers.length;
+            markers.push(marker);
 
             // Pulse effect
             const pulse = L.circleMarker([data.lat, data.lon], {
@@ -315,8 +335,8 @@
             stats.providers[pg] = (stats.providers[pg] || 0) + 1;
 
             updateStats();
-            addLogEntry(data);
             plotOnMap(data);
+            addLogEntry(data, markers.length - 1);
         });
 
         socket.on("connect", () => console.log("SENTINEL ONLINE"));
