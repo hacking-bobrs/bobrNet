@@ -5,7 +5,8 @@ from flask import Flask, render_template
 from flask_socketio import SocketIO
 from datetime import datetime
 from database import save_to_db, init_db, get_chronological_traffic_log
-from scan_traffic_local import run_scanner
+#from scan_traffic_local import run_scanner
+import scan_traffic_dns
 
 
 HOST = '127.0.0.1'  
@@ -115,7 +116,7 @@ def run_domain_processor():
 
 if __name__ == "__main__":
 
-    Thread(target=run_scanner).start()
+    Thread(target=scan_traffic_dns.run_scanner).start()
     Thread(target=run_domain_processor).start()
 
     socketio.run(

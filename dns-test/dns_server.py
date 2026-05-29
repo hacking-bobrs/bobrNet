@@ -1,31 +1,12 @@
 import socket
 import threading
-import dns.message
-import dns.query as dq
 
-from flask import Flask, render_template, request as flask_request
-from flask_socketio import SocketIO
 
-from database import init_db, log_request, get_recent_traffic
-from enricher import resolve_true_sovereignty
 
-app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 LISTEN_IP = "0.0.0.0"
 LISTEN_PORT = 53
 
-
-@app.route("/")
-def index():
-    return render_template("index.html")
-
-
-@socketio.on("connect")
-def handle_connect():
-    history = get_recent_traffic(1000)
-    for event in history:
-        socketio.emit("dns_event", event, to=flask_request.sid)
 
 
 def dns_loop():
@@ -95,21 +76,13 @@ def process(domain, client_ip, response):
 
         print("EMIT:", event, flush=True)
 
-        socketio.emit("dns_event", event)
 
     except Exception as e:
         print("PROCESS ERROR:", repr(e), flush=True)
 
 
 if __name__ == "__main__":
-    init_db()
 
     threading.Thread(target=dns_loop, daemon=True).start()
 
-    socketio.run(
-        app,
-        host="0.0.0.0",
-        port=8081,
-        debug=False,
-        allow_unsafe_werkzeug=True
-    )
+  
