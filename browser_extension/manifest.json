@@ -1,0 +1,19 @@
+{
+  "name": "bobrNet - Extension",
+  "description": "a backend that tracks open URLs for bobrNet ",
+
+
+  "manifest_version": 2,
+  "version": "1.0",
+
+  "icons": {
+    "48": "icons/border-48.png",
+    "96": "icons/border-96.png"
+  },
+
+  "permissions": ["webRequest", "<all_urls>"],
+
+  "background": {
+    "scripts": ["main.js"]
+  }
+}
