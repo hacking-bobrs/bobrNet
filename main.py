@@ -1,13 +1,16 @@
 from threading import Thread
 import requests
 import socket
+import tomllib
 from flask import Flask, render_template
 from flask_socketio import SocketIO
 from datetime import datetime
 from database import save_to_db, init_db, get_chronological_traffic_log
-#from scan_traffic_local import run_scanner
 import scan_traffic_dns
 import scan_traffic_local
+
+with open("bobrnet.config.toml", "rb") as f:
+    config = tomllib.load(f)
 
 
 HOST = '127.0.0.1'  
@@ -117,8 +120,12 @@ def run_domain_processor():
             print("\nDomain Processor shutting down.")
 
 if __name__ == "__main__":
-
-    Thread(target=scan_traffic_local.run_scanner).start()
+    analysis_mode = config.get("analysis", {}).get("mode", "sniffing")
+    if analysis_mode == "sniffing":
+        scanner = scan_traffic_local.run_scanner
+    else:
+        scanner = scan_traffic_dns.run_scanner
+    Thread(target=scanner).start()
     Thread(target=run_domain_processor).start()
 
     socketio.run(
@@ -129,8 +136,3 @@ if __name__ == "__main__":
         allow_unsafe_werkzeug=True
     )
     
-
-
-
-
-
