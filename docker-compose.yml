@@ -9,9 +9,9 @@ services:
     command: >
       sh -c "
             python -m venv /server_venv &&
+            /server_venv/bin/pip install --upgrade pip &&
             /server_venv/bin/pip install -r requirements.txt -q &&
-            /server_venv/bin/python /server/main.py &&
-            /server_venv/bin/pip install --upgrade pip
+            exec /server_venv/bin/python /server/main.py
             "
     ports:
       - "5000:5000"
@@ -34,9 +34,9 @@ services:
     command: >
       sh -c "
             python -m venv /dns_venv &&
+            /dns_venv/bin/pip install --upgrade pip &&
             /dns_venv/bin/pip install -r requirements.txt -q &&
-            /dns_venv/bin/python /dns/main.py &&
-            /dns_venv/bin/pip install --upgrade pip
+            exec /dns_venv/bin/python /dns/main.py
             "
     ports:
       - "6000:6000"
