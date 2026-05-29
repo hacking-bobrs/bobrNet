@@ -55,6 +55,9 @@ def dns_loop():
 
 def process(domain, client_ip, response):
     try:
+        if "ip-api.com" in domain:
+            return
+
         log_request(client_ip, domain)
 
         ip = None
