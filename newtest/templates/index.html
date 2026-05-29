@@ -167,6 +167,11 @@
         let domainFilter = "";
         let markers = [];
 
+        function countryFlag(cc) {
+            if (!cc || cc === 'UN' || cc.length !== 2) return '🏳️';
+            return String.fromCodePoint(...[...cc.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+        }
+
         // --- UI Update Helpers ---
         function updateStats() {
             document.getElementById("stat-total").textContent = stats.total;
@@ -255,7 +260,7 @@
                     <span class="text-[9px] text-black/30">${new Date().toLocaleTimeString()}</span>
                 </div>
                 <div class="flex justify-between text-[9px] text-black/50 uppercase font-bold">
-                    <span>${data.country_code} // ${data.provider_group}</span>
+                    <span>${countryFlag(data.country_code)} ${data.country_code} // ${data.provider_group}</span>
                 </div>
             `;
 
@@ -296,7 +301,7 @@
                     <b class="text-orange-600">${data.domain}</b><br>
                     IP: ${data.ip}<br>
                     ASN: ${data.asn_owner}<br>
-                    LOC: ${data.country}
+                    ${countryFlag(data.country_code)} ${data.country}${data.city ? ', ' + data.city : ''}
                 </div>
             `);
 

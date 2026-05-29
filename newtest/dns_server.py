@@ -80,6 +80,7 @@ def process(domain, client_ip, response):
             "asn_owner": t.get("asn_owner", "unknown"),
             "true_sovereignty": t.get("true_sovereignty", "unknown"),
             "provider_group": t.get("provider_group", "Local / Independent"),
+            "city": t.get("city", ""),
         }
 
         print("EMIT:", event, flush=True)

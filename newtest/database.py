@@ -18,7 +18,8 @@ def init_db():
             longitude REAL,
             asn_owner TEXT,       -- e.g., "AMAZON-02" or "GOOGLE"
             true_sovereignty TEXT, -- The actual corporate jurisdiction (e.g., "United States")
-            provider_group TEXT    -- The cloud provider/CDN name
+            provider_group TEXT,   -- The cloud provider/CDN name
+            city TEXT DEFAULT ''
         )
     ''')
     
@@ -55,7 +56,8 @@ def get_cached_domain(domain):
         return {
             "domain": row[0], "ip": row[1], "country": row[2], "country_code": row[3],
             "lat": row[4], "lon": row[5], "asn_owner": row[6], "true_sovereignty": row[7],
-            "provider_group": row[8] if len(row) > 8 else "Unknown"
+            "provider_group": row[8] if len(row) > 8 else "Unknown",
+            "city": row[9] if len(row) > 9 else ""
         }
     return None
 
@@ -64,9 +66,9 @@ def cache_domain(data):
     cursor = conn.cursor()
     cursor.execute('''
         INSERT OR REPLACE INTO domain_cache 
-        (domain, ip, country, country_code, latitude, longitude, asn_owner, true_sovereignty, provider_group)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (domain, ip, country, country_code, latitude, longitude, asn_owner, true_sovereignty, provider_group, city)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (data['domain'], data['ip'], data['country'], data['country_code'], 
-          data['lat'], data['lon'], data['asn_owner'], data['true_sovereignty'], data['provider_group']))
+          data['lat'], data['lon'], data['asn_owner'], data['true_sovereignty'], data['provider_group'], data.get('city', '')))
     conn.commit()
     conn.close()
