@@ -1,7 +1,7 @@
 import socket
 
 
-def send(message: str, host: str = '127.0.0.1', port: int = 65432):
+def send(url: str, host: str = '127.0.0.1', port: int = 65432):
     """
     Sends a string message to a listening socket server.
 
@@ -17,8 +17,8 @@ def send(message: str, host: str = '127.0.0.1', port: int = 65432):
             client_socket.connect((host, port))
 
             # 3. Convert the string to bytes (UTF-8) and send it
-            if message is not None:
-                client_socket.sendall(message.encode('utf-8'))
+            if url is not None:
+                client_socket.sendall(url.encode('utf-8'))
 
                 #print(f"Successfully sent: '{message}' to {host}:{port}")
 
