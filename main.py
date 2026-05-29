@@ -63,6 +63,7 @@ def send_geo_to_socket(domain, geo_info):
         "domain": domain,
         "ip": geo_info.get("query"),          
         "country": geo_info.get("country") or "Unknown",
+        "country_code": geo_info.get("countryCode") or "UN",
         "city": geo_info.get("city") or "Unknown",
         "lat": geo_info.get("lat"),
         "lon": geo_info.get("lon"),
