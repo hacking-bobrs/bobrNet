@@ -105,7 +105,7 @@ def run_domain_processor():
                         if not data:
                             break
                         message = data.decode('utf-8')
-                        if message not in ["ip-api.com", "basemaps.cartocdn.com"]:
+                        if message not in ["ip-api.com", "a.basemaps.cartocdn.com", "b.basemaps.cartocdn.com", "c.basemaps.cartocdn.com"]:
                             #print(f"[{addr[0]}:{addr[1]}] Received: {message}")
                             geo_info = get_geo_location(message)
                             if geo_info:
