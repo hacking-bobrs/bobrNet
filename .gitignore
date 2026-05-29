@@ -4,3 +4,4 @@ server_venv
 dns_venv
 pgdata
 *.db
+*.pyc
