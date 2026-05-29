@@ -30,24 +30,10 @@
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
-        .neon-text {
-            text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
-        }
-        
+
         .neon-border {
-            box-shadow: 0 0 15px rgba(34, 211, 238, 0.2);
-            border: 1px solid rgba(34, 211, 238, 0.3);
-        }
-
-        .pulse {
-            animation: pulse-animation 2s infinite;
-        }
-
-        @keyframes pulse-animation {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(34, 211, 238, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 211, 238, 0); }
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.05);
         }
 
         ::-webkit-scrollbar { width: 4px; }
@@ -56,6 +42,23 @@
         ::-webkit-scrollbar-thumb:hover { background: #444; }
 
         .leaflet-container { background: #050505 !important; }
+
+        .country-bar {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .country-progress {
+            height: 100%;
+            background: #22d3ee;
+            transition: width 0.5s ease-out;
+        }
+
+        .sidebar-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
     </style>
 </head>
 
@@ -64,66 +67,94 @@
     <!-- Header -->
     <header class="h-16 flex items-center justify-between px-6 border-b border-white/10 glass z-50">
         <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-cyan-500 rounded-lg flex items-center justify-center pulse">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center">
+                <img src="{{ url_for('static', filename='bobrNet.png') }}" />
             </div>
             <div>
-                <h1 class="text-xl font-bold tracking-tighter neon-text">SOVEREIGNTY<span class="text-cyan-400">SENTINEL</span></h1>
-                <p class="text-[10px] uppercase tracking-widest text-white/40 font-bold">Network Autonomy Monitor v1.0</p>
-            </div>
-        </div>
-        
-        <div class="flex gap-8">
-            <div class="text-right">
-                <p class="text-[10px] text-white/40 uppercase font-bold">Total Requests</p>
-                <p id="stat-total" class="text-xl font-bold mono text-cyan-400">0</p>
-            </div>
-            <div class="text-right">
-                <p class="text-[10px] text-white/40 uppercase font-bold">US Dependence</p>
-                <p id="stat-us-dep" class="text-xl font-bold mono text-rose-500">0%</p>
-            </div>
-            <div class="text-right">
-                <p class="text-[10px] text-white/40 uppercase font-bold">Global Reach</p>
-                <p id="stat-countries" class="text-xl font-bold mono text-emerald-400">0</p>
+                <h1 class="text-xl font-bold tracking-tighter">bobrNet</h1>
             </div>
         </div>
     </header>
 
     <main class="flex-1 flex overflow-hidden relative">
         
-        <!-- Left Sidebar: Live Log -->
-        <aside class="w-80 border-r border-white/10 glass flex flex-col z-40">
-            <div class="p-4 border-b border-white/10 flex justify-between items-center">
-                <h2 class="text-xs font-bold uppercase tracking-widest text-white/60">Live Intercepts</h2>
-                <span class="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <!-- Left Panel: Navigation, Filter, Stats -->
+        <aside id="info-panel" class="w-72 border-r border-white/10 glass flex flex-col z-40 sidebar-transition">
+            <div class="p-4 border-b border-white/10">
+                <h3 class="text-[10px] uppercase font-bold text-white/40 mb-4 tracking-widest">Navigation</h3>
+                <div class="space-y-1">
+                    <button class="w-full flex items-center gap-3 px-3 py-2 rounded-lg bg-cyan-500/10 text-cyan-400 text-xs font-bold">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
+                        Global Map
+                    </button>
+                    <button class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-white/60 hover:bg-white/5 text-xs font-bold transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                        Analytics
+                    </button>
+                </div>
             </div>
-            <div id="log" class="flex-1 overflow-y-auto p-4 space-y-3 mono text-[11px]">
-                <!-- Log entries go here -->
-                <div class="text-white/30 italic text-center py-10">Awaiting DNS traffic...</div>
+
+            <div class="p-4 border-b border-white/10">
+                <h3 class="text-[10px] uppercase font-bold text-white/40 mb-3 tracking-widest">Filter Traffic</h3>
+                <div class="relative">
+                    <input type="text" id="filter-input" placeholder="Search domain..." class="w-full bg-white/5 border border-white/10 rounded-lg py-2 pl-9 pr-3 text-[11px] focus:outline-none focus:border-cyan-500/50 transition-colors">
+                    <svg class="w-3.5 h-3.5 absolute left-3 top-2.5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </div>
+            </div>
+
+            <!-- Country Dependencies -->
+            <div class="p-4 border-b border-white/10">
+                <h3 class="text-[10px] uppercase font-bold text-white/40 mb-4 tracking-widest">Country Dependencies</h3>
+                <div id="country-ranking-right" class="space-y-4">
+                    <div class="text-white/20 text-[10px] italic text-center py-4">No data collected</div>
+                </div>
+            </div>
+
+            <!-- Provider Distribution -->
+            <div class="p-4 border-b border-white/10">
+                <h3 class="text-[10px] uppercase font-bold text-white/40 mb-6 tracking-widest">Provider Distribution</h3>
+                <div class="flex items-end gap-2 h-[200px]" id="provider-bars">
+                    <!-- Bars dynamically added here -->
+                </div>
+            </div>
+
+            <!-- Network Stats -->
+            <div class="p-4 border-b border-white/10">
+                <h3 class="text-[10px] uppercase font-bold text-white/40 mb-4 tracking-widest">Network Stats</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="p-4 bg-white/5 rounded-lg border border-white/10">
+                        <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Total Requests</p>
+                        <p id="stat-total" class="text-2xl font-bold mono text-cyan-400">0</p>
+                    </div>
+                    <div class="p-4 bg-white/5 rounded-lg border border-white/10">
+                        <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Global Reach</p>
+                        <p id="stat-countries" class="text-2xl font-bold mono text-emerald-400">0</p>
+                    </div>
+                </div>
             </div>
         </aside>
 
         <!-- Center: Map -->
         <section class="flex-1 relative bg-[#050505]">
             <div id="map"></div>
+        </section>
+
+        <!-- Right Panel -->
+        <aside id="right-panel" class="w-80 border-l border-white/10 glass flex flex-col z-40 sidebar-transition overflow-y-auto custom-scrollbar">
             
-            <!-- Map Overlay UI -->
-            <div class="absolute bottom-6 left-6 right-6 flex gap-4 z-[1000]">
-                <div class="glass p-4 rounded-xl flex-1 neon-border">
-                    <h3 class="text-[10px] uppercase font-bold text-white/50 mb-3 tracking-widest">Infrastructure Distribution</h3>
-                    <div class="h-24 flex items-end gap-2" id="provider-bars">
-                        <!-- Bars dynamically added here -->
-                    </div>
-                </div>
-                
-                <div class="glass p-4 rounded-xl w-64 neon-border">
-                    <h3 class="text-[10px] uppercase font-bold text-white/50 mb-3 tracking-widest">Jurisdiction Warning</h3>
-                    <div id="warning-box" class="text-xs text-white/70 leading-relaxed">
-                        No critical dependencies detected yet. All systems nominal.
-                    </div>
+            
+
+            <!-- Live Intercepts -->
+            <div class="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
+                <div class="flex items-center gap-2">
+                    <span class="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <h2 class="text-[10px] font-bold uppercase tracking-widest text-white/60">Live Intercepts</h2>
                 </div>
             </div>
-        </section>
+            <div id="log" class="flex-1 overflow-y-auto p-4 space-y-3 mono text-[11px]">
+                <div class="text-white/30 italic text-center py-10">Awaiting DNS traffic...</div>
+            </div>
+        </aside>
 
     </main>
 
@@ -149,59 +180,92 @@
         // Stats state
         let stats = {
             total: 0,
-            usDependent: 0,
             countries: new Set(),
+            countryCounts: {},
             providers: {}
         };
+
+        let domainFilter = "";
 
         // --- UI Update Helpers ---
         function updateStats() {
             document.getElementById("stat-total").textContent = stats.total;
             document.getElementById("stat-countries").textContent = stats.countries.size;
-            
-            const usPercent = stats.total > 0 ? Math.round((stats.usDependent / stats.total) * 100) : 0;
-            document.getElementById("stat-us-dep").textContent = `${usPercent}%`;
-            
-            if (usPercent > 50) {
-                document.getElementById("warning-box").innerHTML = `<span class="text-rose-400 font-bold">CRITICAL DEPENDENCE:</span> Over 50% of your traffic is under US Cloud Act jurisdiction. Data sovereignty is compromised.`;
-            } else if (usPercent > 20) {
-                document.getElementById("warning-box").innerHTML = `<span class="text-amber-400 font-bold">MODERATE RISK:</span> Significant infrastructure is centralized in US-controlled nodes.`;
-            }
 
             renderProviderBars();
+            renderCountryRanking();
+        }
+
+        function renderCountryRanking() {
+            const container = document.getElementById("country-ranking-right");
+            if (!container) return;
+            
+            const sorted = Object.entries(stats.countryCounts)
+                .sort((a,b) => b[1] - a[1])
+                .slice(0, 10);
+            
+            if (sorted.length === 0) return;
+            
+            container.innerHTML = "";
+            sorted.forEach(([country, count]) => {
+                const percentage = ((count / stats.total) * 100).toFixed(1);
+                const item = document.createElement("div");
+                item.className = "space-y-1";
+                item.innerHTML = `
+                    <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider">
+                        <span class="text-white/70">${country}</span>
+                        <span class="text-cyan-400">${percentage}%</span>
+                    </div>
+                    <div class="country-bar">
+                        <div class="country-progress" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
         }
 
         function renderProviderBars() {
             const container = document.getElementById("provider-bars");
             container.innerHTML = "";
             
-            const sorted = Object.entries(stats.providers).sort((a,b) => b[1] - a[1]).slice(0, 5);
+            const sorted = Object.entries(stats.providers).sort((a,b) => b[1] - a[1]).slice(0, 8);
             const max = Math.max(...Object.values(stats.providers), 1);
 
             sorted.forEach(([name, count]) => {
                 const height = (count / max) * 100;
                 const bar = document.createElement("div");
-                bar.className = "flex-1 flex flex-col items-center gap-1";
+                bar.className = "flex-1 flex flex-col items-center gap-1 h-full justify-end";
                 bar.innerHTML = `
                     <div class="w-full bg-cyan-500/20 rounded-t relative group" style="height: ${height}%">
-                        <div class="absolute inset-0 bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div class="absolute -top-4 left-0 right-0 text-[8px] text-center mono">${count}</div>
+                        <div class="absolute inset-0 bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity rounded-t"></div>
+                        <div class="absolute -top-4 left-0 right-0 text-[8px] text-center mono text-cyan-400">${count}</div>
                     </div>
-                    <div class="text-[8px] uppercase truncate w-full text-center text-white/40">${name.split(' ')[0]}</div>
+                    <div class="text-[8px] uppercase truncate w-full text-center text-white/40 mt-1">${name.split(' ')[0]}</div>
                 `;
                 container.appendChild(bar);
             });
         }
 
+
+        document.getElementById("filter-input").addEventListener("input", (e) => {
+            domainFilter = e.target.value.toLowerCase();
+            const entries = logDiv.querySelectorAll(".log-entry");
+            entries.forEach(el => {
+                const domain = el.getAttribute("data-domain");
+                el.style.display = domain.includes(domainFilter) ? "block" : "none";
+            });
+        });
+
         function addLogEntry(data) {
             if (stats.total === 1) logDiv.innerHTML = ""; // Clear placeholder
             
             const el = document.createElement("div");
-            el.className = "p-2 border-l-2 border-cyan-500 bg-white/5 rounded-r hover:bg-white/10 transition-colors";
+            el.className = "log-entry p-2 border-l-2 border-cyan-500 bg-white/5 rounded-r hover:bg-white/10 transition-colors";
+            el.setAttribute("data-domain", data.domain.toLowerCase());
             
-            const isUs = data.true_sovereignty.includes("United States");
-            const borderCol = isUs ? "border-rose-500" : "border-emerald-500";
-            el.style.borderLeftColor = isUs ? "#f43f5e" : "#10b981";
+            if (domainFilter && !data.domain.toLowerCase().includes(domainFilter)) {
+                el.style.display = "none";
+            }
 
             el.innerHTML = `
                 <div class="flex justify-between items-start mb-1">
@@ -220,30 +284,29 @@
         function plotOnMap(data) {
             if (!data.lat || !data.lon) return;
 
-            const isUs = data.true_sovereignty.includes("United States");
-            const color = isUs ? "#f43f5e" : "#10b981";
+            const color = "#22d3ee"; // Cyan
             
             const marker = L.circleMarker([data.lat, data.lon], {
-                radius: 5,
+                radius: 4,
                 fillColor: color,
                 color: "#fff",
                 weight: 1,
-                opacity: 0.5,
+                opacity: 0.8,
                 fillOpacity: 0.8
             }).addTo(map);
 
             marker.bindPopup(`
-                <div class="mono text-[10px] p-1">
+                <div class="mono text-[11px] p-1">
                     <b class="text-cyan-600">${data.domain}</b><br>
                     IP: ${data.ip}<br>
                     ASN: ${data.asn_owner}<br>
-                    SOVEREIGNTY: <span style="color:${color}">${data.true_sovereignty}</span>
+                    LOC: ${data.country}
                 </div>
             `);
 
             // Pulse effect
             const pulse = L.circleMarker([data.lat, data.lon], {
-                radius: 5,
+                radius: 4,
                 fillColor: color,
                 color: color,
                 weight: 2,
@@ -251,7 +314,7 @@
                 fillOpacity: 0
             }).addTo(map);
 
-            let r = 5;
+            let r = 4;
             const interval = setInterval(() => {
                 r += 2;
                 pulse.setRadius(r);
@@ -265,12 +328,9 @@
 
         // --- Socket Events ---
         socket.on("dns_event", (data) => {
-            console.log("DNS EVENT:", data);
-            
-            // Update Stats
             stats.total++;
-            if (data.true_sovereignty.includes("United States")) stats.usDependent++;
             stats.countries.add(data.country);
+            stats.countryCounts[data.country] = (stats.countryCounts[data.country] || 0) + 1;
             
             const pg = data.provider_group || "Unknown";
             stats.providers[pg] = (stats.providers[pg] || 0) + 1;
