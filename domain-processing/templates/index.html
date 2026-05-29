@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Sovereignty Sentinel | Digital Independence Dashboard</title>
+    
+    <!-- CSS Libs -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #050505;
+            color: #e2e8f0;
+            font-family: 'Space Grotesk', sans-serif;
+            overflow: hidden;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+            background: #050505;
+        }
+        
+        .glass {
+            background: rgba(15, 15, 25, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .neon-border {
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.05);
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+
+        .leaflet-container { background: #050505 !important; }
+
+        .country-bar {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .country-progress {
+            height: 100%;
+            background: #22d3ee;
+            transition: width 0.5s ease-out;
+        }
+
+        .sidebar-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+
+<body class="h-screen w-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="h-16 flex items-center justify-between px-6 border-b border-white/10 glass z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center">
+                <img src="{{ url_for('static', filename='bobrNet.png') }}" />
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tighter">bobrNet</h1>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 flex overflow-hidden relative">
+        
+        <!-- Left Panel: Navigation, Filter, Stats -->
+        <aside id="info-panel" class="w-72 border-r border-white/10 glass flex flex-col z-40 sidebar-transition">
+            <!-- Network Stats -->
+            <div class="p-4 border-b border-white/10">
+                <h3 class="text-[10px] uppercase font-bold text-white/40 mb-2 tracking-widest">Network Stats</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="p-4 bg-white/5 rounded-lg border border-white/10">
+                        <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Total Requests</p>
+                        <p id="stat-total" class="text-2xl font-bold mono text-cyan-400">0</p>
+                    </div>
+                    <div class="p-4 bg-white/5 rounded-lg border border-white/10">
+                        <p class="text-[10px] text-white/40 uppercase font-bold mb-1">Coutries Hit</p>
+                        <p id="stat-countries" class="text-2xl font-bold mono text-emerald-400">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Country Dependencies -->
+            <div class="p-4 border-b border-white/10">
+                <h3 class="text-[10px] uppercase font-bold text-white/40 mb-4 tracking-widest">Country Dependencies</h3>
+                <div id="country-ranking-right" class="space-y-4">
+                    <div class="text-white/20 text-[10px] italic text-center py-4">No data collected</div>
+                </div>
+            </div>
+
+            <!-- Provider Distribution -->
+            <div class="p-4 border-b border-white/10">
+                <h3 class="text-[10px] uppercase font-bold text-white/40 mb-6 tracking-widest">Provider Distribution</h3>
+                <div class="flex items-end gap-2 h-[200px] overflow-hidden pt-4" id="provider-bars">
+                    <!-- Bars dynamically added here -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center: Map -->
+        <section class="flex-1 relative bg-[#050505]">
+            <div id="map"></div>
+        </section>
+
+        <!-- Right Panel -->
+        <aside id="right-panel" class="w-80 border-l border-white/10 glass flex flex-col z-40 sidebar-transition overflow-y-auto custom-scrollbar">
+            <!-- Live Intercepts -->
+            <div class="flex items-center gap-2 mx-4 mt-4">
+                <h2 class="text-white/60">Intercepted Network Traffic</h2>
+                <span class="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            </div>
+
+            <div class="relative mt-2 mx-4">
+                <input type="text" id="filter-input" placeholder="Search domain..." class="w-full bg-white/5 border border-white/10 rounded-lg py-2 pl-9 pr-3 text-[11px] focus:outline-none focus:border-cyan-500/50 transition-colors">
+                <svg class="w-3.5 h-3.5 absolute left-3 top-2.5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </div>
+
+            <div id="log" class="flex-1 overflow-y-auto p-4 space-y-3 mono text-[11px]">
+                <div class="text-white/30 italic text-center py-10">Awaiting DNS traffic...</div>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- JS Libs -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // --- Initialization ---
+        const map = L.map('map', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([20, 0], 2);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        const socket = io();
+        const logDiv = document.getElementById("log");
+        
+        // Stats state
+        let stats = {
+            total: 0,
+            countries: new Set(),
+            countryCounts: {},
+            providers: {}
+        };
+
+        let domainFilter = "";
+
+        // --- UI Update Helpers ---
+        function updateStats() {
+            document.getElementById("stat-total").textContent = stats.total;
+            document.getElementById("stat-countries").textContent = stats.countries.size;
+
+            renderProviderBars();
+            renderCountryRanking();
+        }
+
+        function renderCountryRanking() {
+            const container = document.getElementById("country-ranking-right");
+            if (!container) return;
+            
+            const sorted = Object.entries(stats.countryCounts)
+                .sort((a,b) => b[1] - a[1])
+                .slice(0, 10);
+            
+            if (sorted.length === 0) return;
+            
+            container.innerHTML = "";
+            sorted.forEach(([country, count]) => {
+                const percentage = ((count / stats.total) * 100).toFixed(1);
+                const item = document.createElement("div");
+                item.className = "space-y-1";
+                item.innerHTML = `
+                    <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider">
+                        <span class="text-white/70">${country}</span>
+                        <span class="text-cyan-400">${percentage}%</span>
+                    </div>
+                    <div class="country-bar">
+                        <div class="country-progress" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderProviderBars() {
+            const container = document.getElementById("provider-bars");
+            container.innerHTML = "";
+            
+            const sorted = Object.entries(stats.providers).sort((a,b) => b[1] - a[1]).slice(0, 5);
+            const max = Math.max(...Object.values(stats.providers), 1);
+
+            sorted.forEach(([name, count]) => {
+                const height = (count / max) * 100;
+                const bar = document.createElement("div");
+                bar.className = "flex-1 flex flex-col items-center gap-1 h-full justify-end";
+                bar.innerHTML = `
+                    <div class="w-full bg-cyan-500/20 rounded-t relative group" style="height: ${height}%">
+                        <div class="absolute inset-0 bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity rounded-t"></div>
+                        <div class="absolute -top-4 left-0 right-0 text-[8px] text-center mono text-cyan-400">${count}</div>
+                    </div>
+                    <div class="text-[8px] uppercase truncate w-full text-center text-white/40 mt-1">${name.split(' ')[0]}</div>
+                `;
+                container.appendChild(bar);
+            });
+        }
+
+
+        document.getElementById("filter-input").addEventListener("input", (e) => {
+            domainFilter = e.target.value.toLowerCase();
+            const entries = logDiv.querySelectorAll(".log-entry");
+            entries.forEach(el => {
+                const domain = el.getAttribute("data-domain");
+                el.style.display = domain.includes(domainFilter) ? "block" : "none";
+            });
+        });
+
+        function addLogEntry(data) {
+            if (stats.total === 1) logDiv.innerHTML = ""; // Clear placeholder
+            
+            const el = document.createElement("div");
+            el.className = "log-entry p-2 bg-white/5 rounded-r hover:bg-white/10 transition-colors";
+            el.setAttribute("data-domain", data.domain.toLowerCase());
+            
+            if (domainFilter && !data.domain.toLowerCase().includes(domainFilter)) {
+                el.style.display = "none";
+            }
+
+            el.innerHTML = `
+                <div class="flex justify-between items-start mb-1">
+                    <span class="text-cyan-400 font-bold truncate pr-2">${data.domain}</span>
+                    <span class="text-[9px] text-white/30">${new Date().toLocaleTimeString()}</span>
+                </div>
+                <div class="flex justify-between text-[9px] text-white/50 uppercase font-bold">
+                    <span>${data.country_code} // ${data.provider_group}</span>
+                </div>
+            `;
+            
+            logDiv.prepend(el);
+            if (logDiv.children.length > 50) logDiv.lastChild.remove();
+        }
+
+        function plotOnMap(data) {
+            if (!data.lat || !data.lon) return;
+
+            const color = "#22d3ee"; // Cyan
+            
+            const marker = L.circleMarker([data.lat, data.lon], {
+                radius: 4,
+                fillColor: color,
+                color: "#fff",
+                weight: 1,
+                opacity: 0.8,
+                fillOpacity: 0.8
+            }).addTo(map);
+
+            marker.bindPopup(`
+                <div class="mono text-[11px] p-1">
+                    <b class="text-cyan-600">${data.domain}</b><br>
+                    IP: ${data.ip}<br>
+                    ASN: ${data.asn_owner}<br>
+                    LOC: ${data.country}
+                </div>
+            `);
+
+            // Pulse effect
+            const pulse = L.circleMarker([data.lat, data.lon], {
+                radius: 4,
+                fillColor: color,
+                color: color,
+                weight: 2,
+                opacity: 0.8,
+                fillOpacity: 0
+            }).addTo(map);
+
+            let r = 4;
+            const interval = setInterval(() => {
+                r += 2;
+                pulse.setRadius(r);
+                pulse.setStyle({ opacity: 1 - (r/30) });
+                if (r > 30) {
+                    clearInterval(interval);
+                    map.removeLayer(pulse);
+                }
+            }, 30);
+        }
+
+        // --- Socket Events ---
+        socket.on("dns_event", (data) => {
+            stats.total++;
+            stats.countries.add(data.country);
+            stats.countryCounts[data.country] = (stats.countryCounts[data.country] || 0) + 1;
+            
+            const pg = data.provider_group || "Unknown";
+            stats.providers[pg] = (stats.providers[pg] || 0) + 1;
+
+            updateStats();
+            addLogEntry(data);
+            plotOnMap(data);
+        });
+
+        socket.on("connect", () => console.log("SENTINEL ONLINE"));
+        socket.on("connect_error", (e) => console.error("CONNECTION INTERRUPTED", e));
+
+    </script>
+</body>
+</html>
