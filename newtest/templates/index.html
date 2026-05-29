@@ -153,8 +153,9 @@
     <script>
         // --- Initialization ---
         const map = L.map('map', {
-            zoomControl: false,
-            attributionControl: false
+            zoomControl: true,
+            attributionControl: false,
+            noWrap: false
         }).setView([20, 0], 2);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
