@@ -1,4 +1,0 @@
-dnspython
-flask
-flask-socketio
-requests
