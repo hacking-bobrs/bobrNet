@@ -41,7 +41,13 @@ def dns_loop():
             response = dq.udp(query, "8.8.8.8", timeout=2.0)
             sock.sendto(response.to_wire(), addr)
 
-            process(domain, addr[0], response)
+            # Process in a separate thread to avoid blocking the DNS loop
+            # especially if enrichment causes more DNS lookups (circular dependency)
+            threading.Thread(
+                target=process, 
+                args=(domain, addr[0], response), 
+                daemon=True
+            ).start()
 
         except Exception as e:
             print("DNS ERROR:", repr(e), flush=True)
@@ -63,14 +69,17 @@ def process(domain, client_ip, response):
         telemetry = resolve_true_sovereignty(domain, ip)
 
         # 🔥 enforce safe structure for frontend
+        t = telemetry if telemetry else {}
         event = {
             "domain": domain,
             "ip": ip,
-            "lat": telemetry.get("lat") if telemetry else 0,
-            "lon": telemetry.get("lon") if telemetry else 0,
-            "country": telemetry.get("country") if telemetry else "unknown",
-            "asn_owner": telemetry.get("asn_owner") if telemetry else "unknown",
-            "true_sovereignty": telemetry.get("true_sovereignty") if telemetry else "unknown",
+            "lat": t.get("lat", 0),
+            "lon": t.get("lon", 0),
+            "country": t.get("country", "unknown"),
+            "country_code": t.get("country_code", "UN"),
+            "asn_owner": t.get("asn_owner", "unknown"),
+            "true_sovereignty": t.get("true_sovereignty", "unknown"),
+            "provider_group": t.get("provider_group", "Local / Independent"),
         }
 
         print("EMIT:", event, flush=True)
