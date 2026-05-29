@@ -1,18 +1,29 @@
 import re
 import socket
 
-import urlextract
 from scan_transmitter import send
 from scapy.all import sniff, TCP, Raw
-
-ext = urlextract.URLExtract()
 
 def extract_domain(packet):
     """Analyzes packets to extract clean, valid accessed domains for ANY TLD."""
     if packet.haslayer(TCP) and packet.haslayer(Raw):
         payload = packet[Raw].load.decode('utf-8', errors='ignore')
-        l = ext.find_urls(payload)
-        return l[0] if l else None
+        
+        # 1. Look for standard HTTP GET/POST Requests
+        if "Host:" in payload:
+            for line in payload.split("\r\n"):
+                if line.startswith("Host:"):
+                    return line.split(" ")[1].strip()
+
+        # 2. Look for HTTPS (SNI) with a universal TLD Regex
+        elif packet[TCP].dport == 443:
+            match = re.search(r'\b([a-zA-Z0-9][-a-zA-Z0-9]*\.)+[a-zA-Z]{2,24}\b', payload)
+            if match:
+                domain = match.group(0).lower()
+
+                if not domain.startswith('.') and not domain.endswith('.'):
+                    return domain
+                
     return None
 
 
