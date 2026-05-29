@@ -106,7 +106,7 @@
             <!-- Provider Distribution -->
             <div class="p-4 border-b border-white/10">
                 <h3 class="text-[10px] uppercase font-bold text-white/40 mb-6 tracking-widest">Provider Distribution</h3>
-                <div class="flex items-end gap-2 h-[200px]" id="provider-bars">
+                <div class="flex items-end gap-2 h-[200px] overflow-hidden pt-4" id="provider-bars">
                     <!-- Bars dynamically added here -->
                 </div>
             </div>
@@ -207,7 +207,7 @@
             const container = document.getElementById("provider-bars");
             container.innerHTML = "";
             
-            const sorted = Object.entries(stats.providers).sort((a,b) => b[1] - a[1]).slice(0, 8);
+            const sorted = Object.entries(stats.providers).sort((a,b) => b[1] - a[1]).slice(0, 5);
             const max = Math.max(...Object.values(stats.providers), 1);
 
             sorted.forEach(([name, count]) => {
