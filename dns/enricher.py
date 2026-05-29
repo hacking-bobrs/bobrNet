@@ -20,7 +20,8 @@ def resolve_true_sovereignty(domain, ip, database):
         asn_owner = location_data_reply.get("as", "Unknown Infrastructure")
         country = location_data_reply.get("country", "Unknown")
         country_code = location_data_reply.get("countryCode", "UN")
-        
+        city = location_data_reply.get("city", "")
+
         # --- INFRASTRUCTURE ENRICHMENT ---
         # Detect global CDN or Cloud Provider
         true_sovereignty = country # default
@@ -52,6 +53,7 @@ def resolve_true_sovereignty(domain, ip, database):
             "ip": ip,
             "country": country,
             "country_code": country_code,
+            "city": city,
             "lat": location_data_reply.get("lat", 0.0),
             "lon": location_data_reply.get("lon", 0.0),
             "asn_owner": asn_owner,
