@@ -69,6 +69,9 @@ def dns_loop():
 
 def process(domain, client_ip, response, database: DatabaseConnection):
     try:
+        if "ip-api.com" in domain:
+            return
+
         log_request(client_ip, domain)
 
         ip = None
@@ -80,9 +83,23 @@ def process(domain, client_ip, response, database: DatabaseConnection):
         if not ip:
             return
 
-        telementry = resolve_true_sovereignty(domain, ip, database)
+        telemetry = resolve_true_sovereignty(domain, ip, database)
 
-        print(telementry)
+        t = telemetry if telemetry else {}
+        event = {
+            "domain": domain,
+            "ip": ip,
+            "lat": t.get("lat", 0),
+            "lon": t.get("lon", 0),
+            "country": t.get("country", "unknown"),
+            "country_code": t.get("country_code", "UN"),
+            "asn_owner": t.get("asn_owner", "unknown"),
+            "true_sovereignty": t.get("true_sovereignty", "unknown"),
+            "provider_group": t.get("provider_group", "Local / Independent"),
+            "city": t.get("city", ""),
+        }
+
+        print("PROCESSED EVENT:", event, flush=True)
 
     except Exception as e:
         print("PROCESS ERROR:", repr(e), flush=True)
