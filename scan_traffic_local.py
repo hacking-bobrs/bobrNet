@@ -17,14 +17,12 @@ def extract_domain(packet):
 
         # 2. Look for HTTPS (SNI) with a universal TLD Regex
         elif packet[TCP].dport == 443:
-            matches = re.findall(r'\b([a-zA-Z0-9][-a-zA-Z0-9]*\.)+[a-zA-Z]{2,24}\b', payload)
-            length = 0
-            result = None
-            for domain in matches:
-                if not domain.startswith('.') and not domain.endswith('.') and len(domain) > length:
-                    result = domain
-                    length = len(domain)
-            return result
+            match = re.search(r'\b([a-zA-Z0-9][-a-zA-Z0-9]*\.)+[a-zA-Z]{2,24}\b', payload)
+            if match:
+                domain = match.group(0).lower()
+
+                if not domain.startswith('.') and not domain.endswith('.'):
+                    return domain
                 
     return None
 
