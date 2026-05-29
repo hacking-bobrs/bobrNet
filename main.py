@@ -7,6 +7,7 @@ from datetime import datetime
 from database import save_to_db, init_db, get_chronological_traffic_log
 #from scan_traffic_local import run_scanner
 import scan_traffic_dns
+import scan_traffic_local
 
 
 HOST = '127.0.0.1'  
@@ -104,7 +105,7 @@ def run_domain_processor():
                         if not data:
                             break
                         message = data.decode('utf-8')
-                        if message not in ["ip-api.com", "b.basemaps.cartocdn.com"]:
+                        if message not in ["ip-api.com", "basemaps.cartocdn.com"]:
                             #print(f"[{addr[0]}:{addr[1]}] Received: {message}")
                             geo_info = get_geo_location(message)
                             if geo_info:
@@ -116,7 +117,7 @@ def run_domain_processor():
 
 if __name__ == "__main__":
 
-    Thread(target=scan_traffic_dns.run_scanner).start()
+    Thread(target=scan_traffic_local.run_scanner).start()
     Thread(target=run_domain_processor).start()
 
     socketio.run(
