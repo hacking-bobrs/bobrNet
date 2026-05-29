@@ -2,3 +2,4 @@
 .env
 server_venv
 pgdata
+*.db
