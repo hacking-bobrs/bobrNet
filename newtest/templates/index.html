@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DNS Map</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+body {
+    margin: 0;
+    font-family: monospace;
+    background: #0d0d0d;
+    color: #00ff66;
+}
+
+#map {
+    height: 70vh;
+}
+
+#log {
+    height: 30vh;
+    overflow-y: auto;
+    padding: 10px;
+    border-top: 1px solid #00ff66;
+    background: #111;
+}
+
+.entry {
+    margin-bottom: 6px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="map"></div>
+<div id="log"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<script>
+
+const map = L.map('map').setView([20, 0], 2);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'OSM'
+}).addTo(map);
+
+const logDiv = document.getElementById("log");
+
+function log(msg) {
+    const el = document.createElement("div");
+    el.className = "entry";
+    el.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    logDiv.prepend(el);
+}
+
+// IMPORTANT: connect to SAME origin
+const socket = io();
+
+socket.on("connect", () => {
+    log("socket connected");
+    console.log("socket connected");
+});
+
+socket.on("connect_error", (e) => {
+    log("socket error");
+    console.log(e);
+});
+
+socket.on("dns_event", (data) => {
+    console.log("EVENT:", data);
+
+    log(`${data.domain} → ${data.country} (${data.asn_owner})`);
+
+    if (!data.lat || !data.lon) {
+        console.log("missing coords", data);
+        return;
+    }
+
+    const marker = L.circleMarker([data.lat, data.lon], {
+        radius: 6
+    }).addTo(map);
+
+    marker.bindPopup(
+        `<b>${data.domain}</b><br>
+        ${data.country}<br>
+        ${data.asn_owner}`
+    );
+});
+
+</script>
+
+</body>
+</html>

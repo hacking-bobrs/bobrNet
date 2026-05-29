@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Sovereignty Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { 
+            margin: 0; 
+            font-family: 'Courier New', Courier, monospace; 
+            background: #0d0d0d; 
+            color: #00ff66; 
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        header {
+            background: #141414;
+            padding: 10px 20px;
+            border-bottom: 2px solid #00ff66;
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.2);
+        }
+        h1 { margin: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 2px; }
+        #map { 
+            flex: 1; 
+            width: 100vw; 
+            background: #111111; 
+        }
+        #log-panel { 
+            height: 250px; 
+            background: #141414;
+            border-top: 2px solid #00ff66;
+            overflow-y: auto; 
+            padding: 15px; 
+            box-sizing: border-box; 
+        }
+        h3 { margin-top: 0; color: #fff; font-size: 14px; text-transform: uppercase; border-bottom: 1px dashed #00ff66; padding-bottom: 5px; }
+        .log-entry { 
+            margin-bottom: 6px; 
+            font-size: 13px;
+            line-height: 1.4;
+            border-bottom: 1px solid #1f1f1f; 
+            padding-bottom: 4px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-3px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🛡️ Digital Sovereignty Dashboard</h1>
+    </header>
+
+    <div id="map"></div>
+    
+    <div id="log-panel">
+        <h3>📡 Real-Time Infrastructure Network Logs</h3>
+        <div id="logs"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.socketio.io/4.7.2/socketio.min.js"></script>
+    
+    <script>
+        const map = L.map('map').setView([20, 0], 2);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CARTO'
+        }).addTo(map);
+
+        const socket = io("https://hb.darius-srv.dev", {
+            transports: ['websocket', 'polling']
+        });
+
+        socket.on('new_dns_query', function(data) {
+            console.log("Received telemetry:", data);
+
+            const marker = L.circleMarker([data.lat, data.lon], {
+                color: '#00ff66',
+                fillColor: '#00ff66',
+                fillOpacity: 0.6,
+                radius: 7
+            }).addTo(map);
+
+            marker.bindPopup(`
+                <div style="font-family:monospace; color:#333;">
+                    <b>🌐 Domain:</b> ${data.domain}<br>
+                    <b>🏢 ASN Owner:</b> ${data.asn_owner}<br>
+                    <b>⚖️ Jurisdiction:</b> ${data.true_sovereignty}
+                </div>
+            `).openPopup();
+
+            const logsDiv = document.getElementById('logs');
+            const newLog = document.createElement('div');
+            newLog.className = 'log-entry';
+            
+            const timestamp = new Date().toLocaleTimeString();
+            newLog.innerHTML = `[${timestamp}] <b>${data.domain}</b> &rarr; Host: <span style="color:#fff">${data.country}</span> | Jurisdiction: <span style="color:#ffcc00">${data.true_sovereignty}</span> (<span style="color:#888">${data.asn_owner}</span>)`;
+            
+            logsDiv.insertBefore(newLog, logsDiv.firstChild);
+        });
+
+        socket.on('connect', () => console.log('📡 Connected directly to network stream!'));
+    </script>
+</body>
+</html>
