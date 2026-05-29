@@ -44,9 +44,6 @@ def init_db():
     ''')
     conn.commit()
     conn.close()
-    
-    conn.commit()
-    conn.close()
 
 def save_to_db(domain, geo_info):
 

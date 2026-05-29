@@ -5,7 +5,7 @@ import socket
 from flask import Flask, render_template
 from flask_socketio import SocketIO
 from datetime import datetime
-from bobr_db import save_to_db
+from bobr_db import save_to_db, init_db
 
 # Define the server address and port
 HOST = '127.0.0.1'  # Localhost (same computer)
@@ -88,6 +88,8 @@ def send_geo_to_socket(domain, geo_info):
         print(f"[!] Failed to emit socket event: {e}")
 
 def run_domain_processor():
+
+    init_db()  # Ensure the database and tables are initialized before processing any domains
     # Create a TCP socket
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
         # Allow the socket to reuse the address (prevents "Address already in use" errors)
