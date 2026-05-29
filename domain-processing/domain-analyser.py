@@ -4,8 +4,9 @@ import requests
 import socket
 from flask import Flask, render_template
 from flask_socketio import SocketIO
-from datetime import datetime
-from bobr_db import save_to_db, init_db
+from datetime import datetime, time
+from bobr_db import save_to_db, init_db, get_chronological_traffic_log
+from scan_domains_local import run_scanner
 
 # Define the server address and port
 HOST = '127.0.0.1'  # Localhost (same computer)
@@ -87,8 +88,15 @@ def send_geo_to_socket(domain, geo_info):
     except Exception as e:
         print(f"[!] Failed to emit socket event: {e}")
 
-def run_domain_processor():
 
+@socketio.on('connect')
+def handle_connect():
+    print(f"[+] Frontend connected")
+    for (d,gi) in get_chronological_traffic_log():
+                send_geo_to_socket(d, gi)
+                print(f"[History] Sent cached domain {d} to frontend.")
+
+def run_domain_processor():
     init_db()  # Ensure the database and tables are initialized before processing any domains
     # Create a TCP socket
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
@@ -101,7 +109,12 @@ def run_domain_processor():
         print("Press Ctrl+C to stop the server.")
 
         try:
-            # This outer loop keeps the server alive forever
+            
+            
+            
+            
+
+
             while True:
                 # Wait and accept an incoming connection from the sender function
                 conn, addr = server_socket.accept()
@@ -117,7 +130,7 @@ def run_domain_processor():
                         
                         message = data.decode('utf-8')
                         if message != "ip-api.com":
-                            print(f"[{addr[0]}:{addr[1]}] Received: {message}")
+                            #print(f"[{addr[0]}:{addr[1]}] Received: {message}")
                             geo_info = get_geo_location(message)
                             if geo_info:
                                 save_to_db(message, geo_info)
@@ -127,6 +140,7 @@ def run_domain_processor():
             print("\nDomain Processor shutting down gracefully.")
 
 if __name__ == "__main__":
+    Thread(target=run_scanner).start()
     Thread(target=run_domain_processor).start()
 
     socketio.run(

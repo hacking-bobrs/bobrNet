@@ -99,4 +99,63 @@ def save_to_db(domain, geo_info):
         conn.close()
 
 
+def get_chronological_traffic_log():
+    """
+    Holt alle Traffic-Logs chronologisch sortiert aus der Datenbank.
+    Gibt eine Liste von (domain, geo_info) Tupeln zurück.
+    Taucht eine Domain mehrfach im Log auf, erscheint sie auch mehrfach in der Liste.
+    """
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    # JOIN-Abfrage: Holt die Daten aus dem Log und verknüpft sie mit dem Cache.
+    # Sortiert wird chronologisch nach dem Log-Zeitstempel (Älteste zuerst).
+    sql_join = '''
+        SELECT 
+            tl.domain,
+            dc.status, dc.country, dc.countryCode, dc.region, dc.regionName,
+            dc.city, dc.zip, dc.lat, dc.lon, dc.timezone, dc.isp, dc.org, 
+            dc."as", dc.query
+        FROM traffic_log tl
+        INNER JOIN domain_cache dc ON tl.domain = dc.domain
+        ORDER BY tl.timestamp ASC
+    '''
+    
+    traffic_data = []
+
+    try:
+        cursor.execute(sql_join)
+        rows = cursor.fetchall()
+
+        for row in rows:
+            domain = row["domain"]
+            
+            # Exakte Rekonstruktion des geo_info Dictionaries aus dem Input
+            geo_info = {
+                "status": row["status"],
+                "country": row["country"],
+                "countryCode": row["countryCode"],
+                "region": row["region"],
+                "regionName": row["regionName"],
+                "city": row["city"],
+                "zip": row["zip"],
+                "lat": row["lat"],
+                "lon": row["lon"],
+                "timezone": row["timezone"],
+                "isp": row["isp"],
+                "org": row["org"],
+                "as": row["as"],
+                "query": row["query"]
+            }
+            
+            traffic_data.append((domain, geo_info))
+            
+    except sqlite3.Error as e:
+        print(f"[!] SQLite-Fehler bei der Log-Abfrage: {e}")
+    finally:
+        conn.close()
+
+    return traffic_data
+
 init_db()
