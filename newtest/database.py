@@ -39,7 +39,7 @@ def log_request(client_ip, domain):
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO traffic_log (timestamp, client_ip, domain) VALUES (?, ?, ?)",
-        (datetime.utcnow().isoformat(), client_ip, domain)
+        (datetime.now().isoformat(), client_ip, domain)
     )
     conn.commit()
     conn.close()
@@ -47,7 +47,7 @@ def log_request(client_ip, domain):
 def get_cached_domain(domain):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM domain_cache WHERE domain = ?", (domain,))
+    cursor.execute("SELECT * FROM domain_cache WHERE domain = ? LIMIT 1", (domain,))
     row = cursor.fetchone()
     conn.close()
     if row:
