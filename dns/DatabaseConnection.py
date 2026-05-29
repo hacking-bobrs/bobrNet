@@ -23,11 +23,14 @@ class DatabaseConnection:
         )
         self.cursor = self.connection.cursor()
 
+    def get_cached_domain(self, domain):
+        return None
+
+    def cache_domain(self, telemetry):
+        return
+
     def closeConnection(self):
         print("Shutting down database connection")
         self.cursor.close()
         self.connection.close()
         print("Database connection has been closed.")
-
-    def getBigData(self) -> dict:
-        return {}

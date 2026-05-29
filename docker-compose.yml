@@ -1,4 +1,13 @@
 services:
+  dashboard:
+    image: nginx:alpine
+    container_name: dashboard
+    ports:
+      - "8082:80"
+    volumes:
+      - ./front:/usr/share/nginx/html:ro
+    restart: unless-stopped
+
   server:
     image: python:3.12-slim
     container_name: server
@@ -60,7 +69,7 @@ services:
       - POSTGRES_USER=${DB_DEVELOPER_USER}
       - POSTGRES_PASSWORD=${DB_DEVELOPER_PASSWORD}
     ports:
-      - "5454:5454"
+      - "5454:5432"
     volumes:
       - ./db:/postgresql/data
     healthcheck:
