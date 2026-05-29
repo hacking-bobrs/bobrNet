@@ -22,30 +22,29 @@ def resolve_true_sovereignty(domain, ip):
         country = r.get("country", "Unknown")
         country_code = r.get("countryCode", "UN")
         
-        # --- SOPHISTICATED SOVEREIGNTY OVERRIDE ENGINE ---
-        # If it's a known global CDN or Cloud Provider, we look at corporate parent origins
+        # --- INFRASTRUCTURE ENRICHMENT ---
+        # Detect global CDN or Cloud Provider
         true_sovereignty = country # default
         provider_group = "Local / Independent"
         
-        us_infrastructure = {
-            "AMAZON": "AWS (US)",
-            "CLOUDFLARE": "Cloudflare (US)",
-            "AKAMAI": "Akamai (US)",
-            "FASTLY": "Fastly (US)",
-            "GOOGLE": "Google (US)",
-            "MICROSOFT": "Azure/MS (US)",
-            "META": "Meta (US)",
-            "FACEBOOK": "Meta (US)",
-            "APPLE": "Apple (US)",
-            "DIGITALOCEAN": "DigitalOcean (US)",
-            "ORACLE": "Oracle (US)",
-            "LINODE": "Linode (US)",
-            "TWITTER": "Twitter/X (US)",
+        infrastructure_map = {
+            "AMAZON": "AWS",
+            "CLOUDFLARE": "Cloudflare",
+            "AKAMAI": "Akamai",
+            "FASTLY": "Fastly",
+            "GOOGLE": "Google",
+            "MICROSOFT": "Azure/MS",
+            "META": "Meta",
+            "FACEBOOK": "Meta",
+            "APPLE": "Apple",
+            "DIGITALOCEAN": "DigitalOcean",
+            "ORACLE": "Oracle",
+            "LINODE": "Linode",
+            "TWITTER": "Twitter/X",
         }
 
-        for keyword, provider in us_infrastructure.items():
+        for keyword, provider in infrastructure_map.items():
             if keyword in asn_owner.upper():
-                true_sovereignty = "United States (US Cloud Act Jurisdiction)"
                 provider_group = provider
                 break
         
