@@ -1,2 +1,2 @@
 [analysis]
-mode = "sniffing" # Mode for packet analysis: "dns" or "sniffing"
+mode = "sniffing" # Mode for packet analysis: "dns" or "sniffing" or "extension"
