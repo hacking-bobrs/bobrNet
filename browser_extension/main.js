@@ -1,8 +1,15 @@
 function logURL(requestDetails) {
   let url = requestDetails.url;
-//   console.log(`bobrNet detected: ${url}`);
+  // console.log(`bobrNet extension detected: ${url}`);
   send(url);
 }
+
+function openWebUI() {
+   browser.tabs.create({url: "http://localhost:8081/"});
+}
+
+browser.browserAction.onClicked.addListener(openWebUI);
+
 
 browser.webRequest.onBeforeRequest.addListener(logURL, {
   urls: ["<all_urls>"],
