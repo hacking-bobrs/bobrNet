@@ -176,9 +176,13 @@ def send_geo_to_socket(domain, geo_info):
 @socketio.on('connect')
 def handle_connect():
     print(f"[+] Frontend connected")
-    #for (d,gi) in get_chronological_traffic_log():
-    #            send_geo_to_socket(d, gi)
-                #print(f"[History] Sent cached domain {d} to frontend.")
+
+
+@socketio.on('load_history')
+def handle_load_history():
+    print(f"[+] Frontend requested history reload")
+    for (d, gi) in get_chronological_traffic_log():
+        send_geo_to_socket(d, gi)
 
 def run_domain_processor():
     init_db()
