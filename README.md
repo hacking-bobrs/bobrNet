@@ -1,10 +1,18 @@
-This is a project for Hackaburg 2026 https://hackaburg.de/2026
+# bobrNet
+
+For more details on the project, you can read the Devpost: https://devpost.com/software/bobrnet
+
+<img width="2992" height="1867" alt="Screenshot 2026-05-30 at 10-56-23 bobrNet Digital Independence Dashboard" src="https://github.com/user-attachments/assets/64e10f36-73fa-403e-a519-4736a7de978f" />
+
+## Data sources
 
 The application has multiple data sources, with more easily extensible:
 - request `sniffing`
 - `dns`
 - browser `extension` webrequest URL logging
 This can be configured in `bobrnet.config.toml` by simply changing the string.
+
+## Running the app
 
 Start the app:
 - clone the repository to any device with python
