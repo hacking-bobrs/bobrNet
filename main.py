@@ -1,4 +1,5 @@
 from threading import Thread
+import keyboard
 import requests
 import socket
 import tomllib
@@ -86,8 +87,8 @@ def send_geo_to_socket(domain, geo_info):
 @socketio.on('connect')
 def handle_connect():
     print(f"[+] Frontend connected")
-    for (d,gi) in get_chronological_traffic_log():
-                send_geo_to_socket(d, gi)
+    #for (d,gi) in get_chronological_traffic_log():
+    #            send_geo_to_socket(d, gi)
                 #print(f"[History] Sent cached domain {d} to frontend.")
 
 def run_domain_processor():
@@ -119,6 +120,17 @@ def run_domain_processor():
         except KeyboardInterrupt:
             print("\nDomain Processor shutting down.")
 
+def await_keyboard_input():
+    
+    while True:
+        event = keyboard.read_event()
+        
+        if event.event_type == keyboard.KEY_DOWN and event.name == 'ü':
+            print(f"\nErfolgreich erkannt! Du hast die Taste '{event.name}' gedrückt.")
+            for (d,gi) in get_chronological_traffic_log():
+                send_geo_to_socket(d, gi)
+            
+
 if __name__ == "__main__":
     analysis_mode = config.get("analysis", {}).get("mode", "sniffing")
     if analysis_mode == "sniffing":
@@ -127,6 +139,7 @@ if __name__ == "__main__":
         scanner = scan_traffic_dns.run_scanner
     # Thread(target=scanner).start()
     Thread(target=run_domain_processor).start()
+    Thread(target=await_keyboard_input).start()
 
     socketio.run(
         app,
