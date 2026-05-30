@@ -125,7 +125,7 @@ if __name__ == "__main__":
         scanner = scan_traffic_local.run_scanner
     else:
         scanner = scan_traffic_dns.run_scanner
-    Thread(target=scanner).start()
+    # Thread(target=scanner).start()
     Thread(target=run_domain_processor).start()
 
     socketio.run(
