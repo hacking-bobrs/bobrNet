@@ -19,7 +19,7 @@ def extract_domain(packet):
         elif packet[TCP].dport == 443:
             matches = re.findall(r'\b([a-zA-Z0-9][-a-zA-Z0-9]*\.)+[a-zA-Z]{2,24}\b', payload)
             for domain in matches:
-                if len(domain) > 4:
+                if len(domain) > 4 and not domain.startswith(".") and not domain.endswith("."):
                     return domain
                 
     return None
