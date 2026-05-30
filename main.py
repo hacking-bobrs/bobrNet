@@ -3,10 +3,12 @@ import keyboard
 import requests
 import socket
 import tomllib
-from flask import Flask, render_template
+import csv
+import io
+from flask import Flask, render_template, Response
 from flask_socketio import SocketIO
 from datetime import datetime
-from database import save_to_db, init_db, get_chronological_traffic_log
+from database import save_to_db, init_db, get_chronological_traffic_log, get_all_cached_domains, get_traffic_summary
 import scan_traffic_dns
 import scan_traffic_local
 
@@ -47,6 +49,93 @@ def get_geo_location(domain):
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route("/export/csv")
+def export_csv():
+    domains = get_all_cached_domains()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Domain", "IP", "Country", "Country Code", "City", "Region",
+                      "ISP", "ASN", "Lat", "Lon", "Timezone"])
+    for d in domains:
+        writer.writerow([
+            d.get("domain"), d.get("query"), d.get("country"), d.get("countryCode"),
+            d.get("city"), d.get("regionName"), d.get("isp"), d.get("as"),
+            d.get("lat"), d.get("lon"), d.get("timezone")
+        ])
+    output.seek(0)
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment;filename=bobrnet_export.csv"}
+    )
+
+
+@app.route("/export/report")
+def export_report():
+    summary = get_traffic_summary()
+
+    # Calculate digital dependency score (0-100, lower is better)
+    total = summary['total_requests'] or 1
+    country_dist = summary['country_dist']
+    provider_dist = summary['provider_dist']
+
+    # Factors: concentration in few countries, US cloud act exposure, provider diversity
+    us_cloud_keywords = ["CLOUDFLARE", "AKAMAI", "AMAZON", "FASTLY", "GOOGLE", "MICROSOFT", "META"]
+    cloud_act_requests = 0
+    for p in provider_dist:
+        isp = (p.get('isp') or '').upper()
+        if any(k in isp for k in us_cloud_keywords):
+            cloud_act_requests += p['cnt']
+
+    cloud_act_pct = (cloud_act_requests / total) * 100
+    top_country_pct = (country_dist[0]['cnt'] / total * 100) if country_dist else 0
+    unique_countries = len(country_dist)
+    unique_providers = len(provider_dist)
+
+    # Score: high concentration + high cloud act = high dependency (bad)
+    score = min(100, int(
+        (cloud_act_pct * 0.4) +
+        (top_country_pct * 0.3) +
+        max(0, (100 - unique_countries * 10)) * 0.15 +
+        max(0, (100 - unique_providers * 5)) * 0.15
+    ))
+
+    if score <= 30:
+        score_label, score_color = "Low Dependency", "#16a34a"
+    elif score <= 60:
+        score_label, score_color = "Moderate Dependency", "#f59e0b"
+    else:
+        score_label, score_color = "High Dependency", "#dc2626"
+
+    # Recommendations
+    recommendations = []
+    if cloud_act_pct > 50:
+        recommendations.append("Over 50% of your traffic routes through US Cloud Act-jurisdiction providers. Consider self-hosted or EU-based alternatives (e.g. Hetzner, OVH, Scaleway).")
+    if cloud_act_pct > 20:
+        recommendations.append(f"{cloud_act_pct:.1f}% of requests hit US cloud infrastructure. Evaluate European CDN options like Bunny.net or KeyCDN.")
+    if top_country_pct > 60:
+        recommendations.append(f"Your top country accounts for {top_country_pct:.1f}% of all traffic. Diversify hosting across multiple jurisdictions.")
+    if unique_providers < 3:
+        recommendations.append("You rely on very few providers. Increase provider diversity to reduce single points of failure.")
+    if unique_countries < 3:
+        recommendations.append("Traffic is concentrated in fewer than 3 countries. Consider geo-distributing services.")
+    if not recommendations:
+        recommendations.append("Your digital infrastructure shows good diversity. Keep monitoring for changes.")
+
+    return render_template("report.html",
+        summary=summary,
+        score=score,
+        score_label=score_label,
+        score_color=score_color,
+        cloud_act_pct=cloud_act_pct,
+        top_country_pct=top_country_pct,
+        unique_countries=unique_countries,
+        unique_providers=unique_providers,
+        recommendations=recommendations,
+        generated_at=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    )
 
 
 def send_geo_to_socket(domain, geo_info):

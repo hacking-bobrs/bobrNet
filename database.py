@@ -189,6 +189,71 @@ def print_traffic_log():
     conn.close()
 
 
+def get_all_cached_domains():
+    """Returns all cached domains with their geo info as a list of dicts."""
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM domain_cache')
+    rows = cursor.fetchall()
+    result = [dict(row) for row in rows]
+    conn.close()
+    return result
+
+def get_traffic_summary():
+    """Returns summary statistics for the PDF report."""
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    # Total requests
+    cursor.execute('SELECT COUNT(*) as total FROM traffic_log')
+    total_requests = cursor.fetchone()['total']
+
+    # Unique domains
+    cursor.execute('SELECT COUNT(DISTINCT domain) as total FROM traffic_log')
+    unique_domains = cursor.fetchone()['total']
+
+    # Country distribution
+    cursor.execute('''
+        SELECT dc.country, dc.countryCode, COUNT(*) as cnt
+        FROM traffic_log tl
+        INNER JOIN domain_cache dc ON tl.domain = dc.domain
+        GROUP BY dc.country
+        ORDER BY cnt DESC
+    ''')
+    country_dist = [dict(r) for r in cursor.fetchall()]
+
+    # Provider distribution
+    cursor.execute('''
+        SELECT dc.isp, COUNT(*) as cnt
+        FROM traffic_log tl
+        INNER JOIN domain_cache dc ON tl.domain = dc.domain
+        GROUP BY dc.isp
+        ORDER BY cnt DESC
+    ''')
+    provider_dist = [dict(r) for r in cursor.fetchall()]
+
+    # Top domains by request count
+    cursor.execute('''
+        SELECT domain, COUNT(*) as cnt
+        FROM traffic_log
+        GROUP BY domain
+        ORDER BY cnt DESC
+        LIMIT 20
+    ''')
+    top_domains = [dict(r) for r in cursor.fetchall()]
+
+    conn.close()
+    return {
+        'total_requests': total_requests,
+        'unique_domains': unique_domains,
+        'country_dist': country_dist,
+        'provider_dist': provider_dist,
+        'top_domains': top_domains
+    }
+
+
 #print_cached_domains()
 #print_traffic_log()
 

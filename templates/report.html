@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>bobrNet | Digital Independence Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='bobrNet.png') }}">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #f5f5f5;
+            color: #1e293b;
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+        .header img { width: 48px; height: 48px; }
+        .header h1 { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+        .subtitle { color: #64748b; font-size: 13px; margin-bottom: 40px; }
+
+        .score-card {
+            background: white;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 8px;
+            padding: 32px;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .score-number {
+            font-size: 72px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .score-label {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+        .score-desc {
+            color: #64748b;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .metric-card {
+            background: white;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 6px;
+            padding: 20px;
+        }
+        .metric-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #64748b;
+            letter-spacing: 0.5px;
+        }
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .section {
+            background: white;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 6px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .section h2 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .rec-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .rec-item:last-child { border-bottom: none; }
+        .rec-icon {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            background: #fff7ed;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th {
+            text-align: left;
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #64748b;
+            padding: 8px 12px;
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+        }
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .bar-container {
+            background: rgba(0,0,0,0.05);
+            border-radius: 4px;
+            height: 6px;
+            flex: 1;
+        }
+        .bar-fill {
+            height: 100%;
+            background: #f97316;
+            border-radius: 4px;
+        }
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .print-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1e293b;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .print-btn:hover { background: #334155; }
+
+        @media print {
+            body { padding: 20px; }
+            .print-btn { display: none; }
+            .section, .score-card, .metric-card { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='bobrNet.png') }}" alt="bobrNet" />
+        <h1>Digital Independence Report</h1>
+    </div>
+    <p class="subtitle">Generated on {{ generated_at }} by bobrNet</p>
+
+    <!-- Dependency Score -->
+    <div class="score-card">
+        <div class="score-number mono" style="color: {{ score_color }}">{{ score }}</div>
+        <div class="score-label" style="color: {{ score_color }}">{{ score_label }}</div>
+        <div class="score-desc">Digital Dependency Score (0 = fully independent, 100 = fully dependent)</div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="metrics">
+        <div class="metric-card">
+            <div class="metric-label">Total Requests</div>
+            <div class="metric-value mono">{{ summary.total_requests }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Unique Domains</div>
+            <div class="metric-value mono">{{ summary.unique_domains }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Countries</div>
+            <div class="metric-value mono">{{ unique_countries }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Cloud Act Exposure</div>
+            <div class="metric-value mono" style="color: {% if cloud_act_pct > 50 %}#dc2626{% elif cloud_act_pct > 20 %}#f59e0b{% else %}#16a34a{% endif %}">{{ "%.1f"|format(cloud_act_pct) }}%</div>
+        </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="section">
+        <h2>Recommendations</h2>
+        {% for rec in recommendations %}
+        <div class="rec-item">
+            <div class="rec-icon">{{ loop.index }}</div>
+            <div>{{ rec }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Country Distribution -->
+    <div class="section">
+        <h2>Country Distribution</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Country</th>
+                    <th>Code</th>
+                    <th>Requests</th>
+                    <th style="width: 40%">Share</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in summary.country_dist[:15] %}
+                <tr>
+                    <td>{{ c.country }}</td>
+                    <td class="mono">{{ c.countryCode }}</td>
+                    <td class="mono">{{ c.cnt }}</td>
+                    <td>
+                        <div class="bar-row">
+                            <div class="bar-container">
+                                <div class="bar-fill" style="width: {{ (c.cnt / summary.total_requests * 100)|round(1) }}%"></div>
+                            </div>
+                            <span class="mono" style="font-size: 11px; min-width: 40px;">{{ (c.cnt / summary.total_requests * 100)|round(1) }}%</span>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Provider Distribution -->
+    <div class="section">
+        <h2>Provider Distribution</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Provider</th>
+                    <th>Requests</th>
+                    <th style="width: 40%">Share</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in summary.provider_dist[:15] %}
+                <tr>
+                    <td>{{ p.isp }}</td>
+                    <td class="mono">{{ p.cnt }}</td>
+                    <td>
+                        <div class="bar-row">
+                            <div class="bar-container">
+                                <div class="bar-fill" style="width: {{ (p.cnt / summary.total_requests * 100)|round(1) }}%"></div>
+                            </div>
+                            <span class="mono" style="font-size: 11px; min-width: 40px;">{{ (p.cnt / summary.total_requests * 100)|round(1) }}%</span>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Top Domains -->
+    <div class="section">
+        <h2>Top Domains</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Domain</th>
+                    <th>Requests</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in summary.top_domains %}
+                <tr>
+                    <td class="mono">{{ d.domain }}</td>
+                    <td class="mono">{{ d.cnt }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">📄 Save as PDF</button>
+</body>
+</html>
